@@ -3,7 +3,8 @@
 # ---------------------------------------------
 #  Modified by Zhiqi Li
 # ---------------------------------------------
- 
+#  Modified by SungJun Shin
+# ---------------------------------------------
 from __future__ import division
 
 import argparse
@@ -19,13 +20,11 @@ from mmcv.runner import get_dist_info, init_dist, wrap_fp16_model
 from os import path as osp
 
 from mmdet import __version__ as mmdet_version
-from mmdet3d import __version__ as mmdet3d_version
 
-from mmdet3d.datasets import build_dataset
-from mmdet3d.models import build_model
-from mmdet3d.utils import collect_env, get_root_logger
+from mmdet.datasets import build_dataset
+from mmdet.models import build_model
+from mmdet.utils import collect_env, get_root_logger
 from mmdet.apis import set_random_seed
-from mmseg import __version__ as mmseg_version
 from mmcv.utils import TORCH_VERSION, digit_version
 
 import wandb
@@ -106,7 +105,6 @@ def main():
     
     # torch.autograd.set_detect_anomaly(True)
 
-    
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
         
@@ -140,7 +138,7 @@ def main():
                 print(_module_path)
                 plg_lib = importlib.import_module(_module_path)
 
-            from projects.mmdet3d_plugin.core.apis.train import custom_train_model
+            from projects.mmdet_plugin.core.apis.train import custom_train_model
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
@@ -193,11 +191,8 @@ def main():
     log_file = osp.join(cfg.work_dir, f'{timestamp}.log')
     # specify logger name, if we still use 'mmdet', the output info will be
     # filtered and won't be saved in the log_file
-    # TODO: ugly workaround to judge whether we are training det or seg model
-    if cfg.model.type in ['EncoderDecoder3D']:
-        logger_name = 'mmseg'
-    else:
-        logger_name = 'mmdet'
+
+    logger_name = 'mmdet'
     logger = get_root_logger(
         log_file=log_file, log_level=cfg.log_level, name=logger_name)
 
@@ -257,12 +252,9 @@ def main():
         # checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmdet_version=mmdet_version,
-            mmseg_version=mmseg_version,
-            mmdet3d_version=mmdet3d_version,
             config=cfg.pretty_text,
-            CLASSES=datasets[0].CLASSES,
-            PALETTE=datasets[0].PALETTE  # for segmentors
-            if hasattr(datasets[0], 'PALETTE') else None)
+            CLASSES=datasets[0].CLASSES)
+        
     # add an attribute for visualization convenience
     model.CLASSES = datasets[0].CLASSES
     custom_train_model(
