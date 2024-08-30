@@ -27,8 +27,6 @@ from mmdet.utils import collect_env, get_root_logger
 from mmdet.apis import set_random_seed
 from mmcv.utils import TORCH_VERSION, digit_version
 
-import wandb
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
     parser.add_argument('config', help='train config file path')
@@ -175,12 +173,6 @@ def main():
         rank, world_size = get_dist_info()
         cfg.gpu_ids = range(world_size)
         cfg.dist_params.update(timeout=5400)
-
-    
-    # Weights & Bias init
-    if rank == 0:
-        wandb.init(project = cfg.project, name = cfg.project_name)
-        wandb.config.update(cfg)
     
     # create work_dir
     mmcv.mkdir_or_exist(osp.abspath(cfg.work_dir))
