@@ -1,5 +1,8 @@
-# -----------
-# Copyright
+# ---------------------------------------------
+# Copyright (c) OpenMMLab. All rights reserved.
+# ---------------------------------------------
+#  Modified by SungJun Shin
+# ---------------------------------------------
 
 import torch
 import torch.nn.functional as F
