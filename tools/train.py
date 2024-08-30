@@ -22,7 +22,7 @@ from os import path as osp
 from mmdet import __version__ as mmdet_version
 
 from mmdet.datasets import build_dataset
-from mmdet.models import build_model
+from mmdet.models import build_detector
 from mmdet.utils import collect_env, get_root_logger
 from mmdet.apis import set_random_seed
 from mmcv.utils import TORCH_VERSION, digit_version
@@ -221,7 +221,7 @@ def main():
     meta['seed'] = args.seed
     meta['exp_name'] = osp.basename(args.config)
 
-    model = build_model(
+    model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
