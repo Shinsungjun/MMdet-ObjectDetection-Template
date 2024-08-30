@@ -1,5 +1,5 @@
 # Repository for 2D Object Detection in mmdet Framework
-# Will be Update README!!
+# README will be updated SOON!!
 
 ## Hanhwa - IR Image Object Detection Challenge
 
