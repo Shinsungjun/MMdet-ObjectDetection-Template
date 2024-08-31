@@ -97,7 +97,7 @@ data_root = '/ws/HanhwaIRChallenge/MMdet-ObjectDetection/data/IRData/' #for ipyn
 # data_root = './data/IRData/'
 class_names = ['person', 'car', 'truck', 'bus', 'bicycle', 'bike', 'extra_vehicle', 'dog']
 num_gpus = 1
-batch_size = 4
+batch_size = 8
 # num_iters_per_epoch = 
 img_norm_cfg = None #For IR Image
 
@@ -118,7 +118,7 @@ test_pipeline = [
         transforms=[
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='DefaultFormatBundle'),
-    dict(type='CollectIR', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='CollectIR', keys=['img']),
     ])
 ]
 

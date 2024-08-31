@@ -1,3 +1,4 @@
 from .formatting import(
-    CollectIR
+    CollectIR,
+    OneChannelImgFormatBundle
 )
