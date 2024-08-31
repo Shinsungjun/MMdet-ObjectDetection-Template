@@ -45,11 +45,26 @@ class CTDetection(TwoStageDetector):
 
             return x
 
-        def forward_train(self):
+        def forward_train(self,
+                          img,
+                          img_metas,
+                          gt_bboxes,
+                          gt_labels,
+                          gt_bboxes_ignore=None,
+                          gt_masks=None,
+                          proposal=None,
+                          **kwargs):
             pass
 
         def simple_test(self):
             pass
 
+        @auto_fp16(apply_to('img', ))
+        def forward(self, return_loss=True, **data):
+            if return_loss:
+                return self.forward_train(**data)
+
+            else:
+                return self.forward_test(**data)
 
 

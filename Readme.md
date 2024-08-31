@@ -24,7 +24,7 @@ My Repo
 -data
 
 
-RTX3060
+RTX3060 -> need cu113
 docker pull pytorch/pytorch:1.11.0-cuda11.3-cudnn8-devel
 pip install mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu113/torch1.11.0/index.html
 apt-get install libgl1-mesa-glx 

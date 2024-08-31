@@ -25,25 +25,26 @@ log_config = dict(
                         #  'config': cfg_dict
 
 # model config
-model = dict(
-    type='CTDetection', #name of detector
-    backbone = dict(
+# model = dict(
+#     type='CTDetection', #name of detector
+#     backbone = dict(
         
-    )
-    neck = dict(
+#     ),
+#     neck = dict(
 
-    )
+#     ),
 
-    rpn_head = dict(
+#     rpn_head = dict(
 
-    )
-    roi_head = dict(
+#     ),
+#     roi_head = dict(
 
-    )   
-)
+#     ), 
+# )
 # dataset config
 dataset_type = 'HanhwaIRDataset'
-data_root = 'data/IRData/'
+data_root = '/ws/HanhwaIRChallenge/MMdet-ObjectDetection/data/IRData/' #for ipynb
+# data_root = './data/IRData/'
 class_names = ['person', 'car', 'truck', 'bus', 'bicycle', 'bike', 'extra_vehicle', 'dog']
 num_gpus = 1
 batch_size = 4
@@ -68,23 +69,24 @@ test_pipeline = [
 data = dict(
     samples_per_gpu=batch_size,
     workers_per_gpu=4,
+    shuffle=True, #only in training
     train = dict(type='HanhwaIRDataset',
                  data_root=data_root,
-                 ann_file=data_root+'annotations/train.json',
+                 ann_file='annotations/train.json',
                  img_prefix=data_root +'train/',
                  pipeline=train_pipeline,
                  classes=class_names
                  ),
     val = dict(type='HanhwaIRDataset',
                  data_root=data_root,
-                 ann_file=data_root+'annotations/val.json',
+                 ann_file='annotations/val.json',
                  img_prefix=data_root +'val/',
                  pipeline=test_pipeline,
                  classes=class_names
                  ),
     test = dict(type='HanhwaIRDataset',
                  data_root=data_root,
-                 ann_file=data_root+'annotations/val.json',
+                 ann_file='annotations/val.json',
                  img_prefix=data_root +'val/',
                  pipeline=test_pipeline,
                  classes=class_names
@@ -103,9 +105,9 @@ optimizer = dict(
     lr=1e-4,
     paramwise_cfg=dict(
         custom_keys={
-            'backbone' : dict(lr_mult:0.25)
+            'backbone' : dict(lr_mult=0.25)
         }
-    )
+    ),
     weight_decay=0.01
 )
 

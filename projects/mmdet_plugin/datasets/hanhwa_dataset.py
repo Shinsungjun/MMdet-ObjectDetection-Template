@@ -11,7 +11,7 @@ import math
 from mmcv.parallel import DataContainer as DC
 from mmdet.datasets import DATASETS
 from mmdet.datasets import CustomDataset
-from mmdet.datasets.api_wrappers import COCO, COCOEval
+from mmdet.datasets.api_wrappers import COCO, COCOeval
 from mmdet.core import eval_recalls
 
 @DATASETS.register_module()
@@ -37,12 +37,12 @@ class HanhwaIRDataset(CustomDataset):
         self.coco = COCO(ann_file)
         self.cat_ids = self.coco.getCatIds() #get All Category Ids out : 0,1,2,...,7
         self.cat2label = {cat_id: i for i, cat_id in enumerate(self.cat_ids)}
-        self.image_ids = self.coco.getImgIds() #IRData have string id [train_0, train_1, ...] (COCO -> int)
+        self.img_ids = self.coco.getImgIds() #IRData have string id [train_0, train_1, ...] (COCO -> int)
         
         data_infos = []
         total_ann_ids = []
 
-        for img_id in self.image_ids:
+        for img_id in self.img_ids:
             info = self.coco.imgs[img_id]
             info['filename'] = info['file_name']
             data_infos.append(info)

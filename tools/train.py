@@ -103,17 +103,16 @@ def main():
     
     # torch.autograd.set_detect_anomaly(True)
 
-    if args.cfg_options is not None:
+    if args.cfg_options is not None: #cfg_options = None
         cfg.merge_from_dict(args.cfg_options)
-        
     
     # import modules from string list.
-    if cfg.get('custom_imports', None):
+    if cfg.get('custom_imports', None): #No custom_imports key(field) in cfg
         from mmcv.utils import import_modules_from_strings
         import_modules_from_strings(**cfg['custom_imports'])
 
     # import modules from plguin/xx, registry will be updated
-    if hasattr(cfg, 'plugin'):
+    if hasattr(cfg, 'plugin'): #This Repo use plugin
         if cfg.plugin:
             import importlib
             if hasattr(cfg, 'plugin_dir'):
@@ -133,7 +132,7 @@ def main():
                 _module_path = _module_dir[0]
                 for m in _module_dir[1:]:
                     _module_path = _module_path + '.' + m
-                print(_module_path)
+                print(_module_path) #projects.mmdet_plugin
                 plg_lib = importlib.import_module(_module_path)
 
             from projects.mmdet_plugin.core.apis.train import custom_train_model
