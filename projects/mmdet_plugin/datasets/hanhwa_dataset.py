@@ -265,7 +265,6 @@ class HanhwaIRDataset(CustomDataset):
             result_files['bbox'] = f'{outfile_prefix}.bbox.json'
             result_files['proposal'] = f'{outfile_prefix}.bbox.json'
             mmcv.dump(json_results, result_files['bbox'])
-            print(json_results)
         elif isinstance(results[0], tuple):
             json_results = self._segm2json(results)
             result_files['bbox'] = f'{outfile_prefix}.bbox.json'

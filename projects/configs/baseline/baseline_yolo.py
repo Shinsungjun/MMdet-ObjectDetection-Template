@@ -54,7 +54,7 @@ model = dict(
         out_channels=128,
         num_csp_blocks=1),
     bbox_head=dict(
-        type='YOLOXHead', num_classes=80, in_channels=128, feat_channels=128),
+        type='CustomYOLOXHead', num_classes=8, in_channels=128, feat_channels=128),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.
@@ -66,7 +66,7 @@ data_root = '/ws/HanhwaIRChallenge/MMdet-ObjectDetection/data/IRData/' #for ipyn
 # data_root = './data/IRData/'
 class_names = ['person', 'car', 'truck', 'bus', 'bicycle', 'bike', 'extra_vehicle', 'dog']
 num_gpus = 1
-batch_size = 8
+batch_size = 4
 # num_iters_per_epoch = 
 img_norm_cfg = None #For IR Image
 
