@@ -21,7 +21,7 @@ from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.utils import (build_ddp, build_dp, compat_cfg,
                          find_latest_checkpoint, get_root_logger)
-from mmdet.apis 
+
 def custom_train_detector(model,
                    dataset,
                    cfg,
@@ -57,11 +57,11 @@ def custom_train_detector(model,
         build_dataloader(ds,
                          cfg.data.samples_per_gpu,
                          cfg.data.workers_per_gpu,
-                         len(cfg.gpu_ids,
+                         len(cfg.gpu_ids),
                          dist=distributed,
                          seed=cfg.seed,
                          shuffle=cfg.data.shuffle,
-                         runner_type=runner_type) for ds in dataset)
+                         runner_type=runner_type) for ds in dataset
     ]
 
     # put model on gpus
@@ -134,11 +134,11 @@ def custom_train_detector(model,
         build_dataloader(ds,
                          cfg.data.samples_per_gpu,
                          cfg.data.workers_per_gpu,
-                         len(cfg.gpu_ids,
+                         len(cfg.gpu_ids),
                          dist=distributed,
                          seed=cfg.seed,
                          shuffle=False,
-                         runner_type=runner_type) for ds in dataset)
+                         runner_type=runner_type) for ds in val_dataset
         
         ]
         eval_cfg = cfg.get('evaluation', {})

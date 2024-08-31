@@ -183,9 +183,8 @@ def main():
     # specify logger name, if we still use 'mmdet', the output info will be
     # filtered and won't be saved in the log_file
 
-    logger_name = 'mmdet'
     logger = get_root_logger(
-        log_file=log_file, log_level=cfg.log_level, name=logger_name)
+        log_file=log_file, log_level=cfg.log_level)
 
     # init the meta dict to record some important information such as
     # environment info and seed, which will be logged
@@ -212,6 +211,8 @@ def main():
     meta['seed'] = args.seed
     meta['exp_name'] = osp.basename(args.config)
 
+    print("before make model")
+    exit()
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),

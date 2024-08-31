@@ -1,6 +1,7 @@
 # baseline config file
 _base_ = [
-    '../../../mmdetection/configs/_base_/datasets/coco_detection.py'
+    '../../../mmdetection/configs/_base_/datasets/coco_detection.py',
+    '../../../mmdetection/configs/_base_/default_runtime.py'
 ]
 # (Above) Override on base config
 

@@ -10,6 +10,8 @@ It supports MMdetection v2~ now, but will be upgraded to v3~
 
 ### Preparation
 pip install mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9.0/index.html
+pip install yapf==0.40.1
+
 git clone https://github.com/open-mmlab/mmdetection.git
 cd mmdetection
 git checkout v2.28.2
