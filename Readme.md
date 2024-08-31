@@ -37,7 +37,7 @@ pip install wandb
 
 for single gpu
 
-tools/dist_train.sh projects/configs/baseline/baseline.py 1 --work-dir work_dirs/baseline/
+tools/single_train.sh projects/configs/baseline/baseline.py 1 --work-dir work_dirs/baseline/
 
 for multi gpu (DDP)
 
