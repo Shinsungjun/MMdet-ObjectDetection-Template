@@ -12,6 +12,7 @@ import random
 import numpy as np
 import torch
 import torch.distributed as dist
+from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunner,
                          Fp16OptimizerHook, OptimizerHook, build_runner,
                          get_dist_info)
@@ -29,8 +30,6 @@ def custom_train_detector(model,
                    validate=False,
                    timestamp=None,
                    meta=None):
-
-    cfg = compat_cfg(cfg)
     logger = get_root_logger(log_level=cfg.log_level)
 
     # prepare data loaders
@@ -69,14 +68,14 @@ def custom_train_detector(model,
         find_unused_parameters = cfg.get('find_unused_parameters', False)
         # Sets the `find_unused_parameters` parameter in
         # torch.nn.parallel.DistributedDataParallel
-        model = build_ddp(
-            model,
-            cfg.device,
-            device_ids=[int(os.environ['LOCAL_RANK'])],
+        model = MMDistributedDataParallel(
+            model.cuda(),
+            device_ids=[torch.cuda.current_device()],
             broadcast_buffers=False,
             find_unused_parameters=find_unused_parameters)
     else:
-        model = build_dp(model, cfg.device, device_ids=cfg.gpu_ids)
+        model = MMDataParallel(
+            model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build optimizer
     auto_scale_lr(cfg, distributed, logger)
@@ -130,17 +129,15 @@ def custom_train_detector(model,
 
         val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
 
-        val_dataloader = [
-        build_dataloader(ds,
+        val_dataloader = build_dataloader(val_dataset,
                          cfg.data.samples_per_gpu,
                          cfg.data.workers_per_gpu,
                          len(cfg.gpu_ids),
                          dist=distributed,
                          seed=cfg.seed,
                          shuffle=False,
-                         runner_type=runner_type) for ds in val_dataset
+                         runner_type=runner_type)
         
-        ]
         eval_cfg = cfg.get('evaluation', {})
         eval_cfg['by_epoch'] = cfg.runner['type'] != 'IterBasedRunner'
         eval_hook = DistEvalHook if distributed else EvalHook

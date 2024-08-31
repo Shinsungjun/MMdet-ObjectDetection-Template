@@ -18,30 +18,79 @@ plugin_dir='projects/mmdet_plugin/'
 log_config = dict(
     interval=50,
     hooks=[
-        dict(type="TextLoggerHook"),
-        dict(type="TesnroboardLoggerHook"),
-        dict(type="MMDetWandbHook", by_epoch=False,
-            init_kwargs={'entity': wandb_entity,
-                         'project': project_name,}),])
+        dict(type="TextLoggerHook"),])
                         #  'config': cfg_dict
 
 # model config
-# model = dict(
-#     type='CTDetection', #name of detector
-#     backbone = dict(
-        
-#     ),
-#     neck = dict(
-
-#     ),
-
-#     rpn_head = dict(
-
-#     ),
-#     roi_head = dict(
-
-#     ), 
-# )
+model = dict(
+    type='DETR',
+    backbone=dict(
+        type='ResNet',
+        in_channels=1, #IR Data
+        depth=50,
+        num_stages=4,
+        out_indices=(3, ),
+        frozen_stages=1,
+        norm_cfg=dict(type='BN', requires_grad=False),
+        norm_eval=True,
+        style='pytorch',
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
+    bbox_head=dict(
+        type='DETRHead',
+        num_classes=8, #IRData
+        in_channels=2048,
+        transformer=dict(
+            type='Transformer',
+            encoder=dict(
+                type='DetrTransformerEncoder',
+                num_layers=6,
+                transformerlayers=dict(
+                    type='BaseTransformerLayer',
+                    attn_cfgs=[
+                        dict(
+                            type='MultiheadAttention',
+                            embed_dims=256,
+                            num_heads=8,
+                            dropout=0.1)
+                    ],
+                    feedforward_channels=2048,
+                    ffn_dropout=0.1,
+                    operation_order=('self_attn', 'norm', 'ffn', 'norm'))),
+            decoder=dict(
+                type='DetrTransformerDecoder',
+                return_intermediate=True,
+                num_layers=6,
+                transformerlayers=dict(
+                    type='DetrTransformerDecoderLayer',
+                    attn_cfgs=dict(
+                        type='MultiheadAttention',
+                        embed_dims=256,
+                        num_heads=8,
+                        dropout=0.1),
+                    feedforward_channels=2048,
+                    ffn_dropout=0.1,
+                    operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
+                                     'ffn', 'norm')),
+            )),
+        positional_encoding=dict(
+            type='SinePositionalEncoding', num_feats=128, normalize=True),
+        loss_cls=dict(
+            type='CrossEntropyLoss',
+            bg_cls_weight=0.1,
+            use_sigmoid=False,
+            loss_weight=1.0,
+            class_weight=1.0),
+        loss_bbox=dict(type='L1Loss', loss_weight=5.0),
+        loss_iou=dict(type='GIoULoss', loss_weight=2.0)),
+    # training and testing settings
+    train_cfg=dict(
+        assigner=dict(
+            type='HungarianAssigner',
+            cls_cost=dict(type='ClassificationCost', weight=1.),
+            reg_cost=dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
+            iou_cost=dict(type='IoUCost', iou_mode='giou', weight=2.0))),
+    test_cfg=dict(max_per_img=100))
+    
 # dataset config
 dataset_type = 'HanhwaIRDataset'
 data_root = '/ws/HanhwaIRChallenge/MMdet-ObjectDetection/data/IRData/' #for ipynb
@@ -57,14 +106,20 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='CollectIR', keys=['img', 'gt_bboxes', 'gt_labels']),
 ]
 
 test_pipeline = [
     dict(type='LoadImageFromFile', color_type='grayscale'), #1 Channel IR Image
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(640,480),
+        flip=False,
+        transforms=[
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='CollectIR', keys=['img', 'gt_bboxes', 'gt_labels']),
+    ])
 ]
 
 data = dict(
@@ -96,10 +151,16 @@ data = dict(
 # train/inference config
 num_epochs = 20
 runner = dict(
-    type = "EpochBasedRunner", max_epoch=num_epochs)
+    type = "EpochBasedRunner", max_epochs=num_epochs)
 
 lr_config = dict(
-    policy='step', warmup='linear', warmup_ratio=0.001, step=[8, 11])
+    policy='CosineAnnealing',
+    by_epoch=False,
+    min_lr_ratio=1e-2,
+    warmup='linear',
+    warmup_ratio=1e-3,
+    warmup_iters=10 * 1252,
+    warmup_by_epoch=False)
 
 optimizer = dict(
     type = 'AdamW',
@@ -111,7 +172,7 @@ optimizer = dict(
     ),
     weight_decay=0.01
 )
-
+optimizer_config = dict(grad_clip=dict(max_norm=0.1, norm_type=2))
 evaluation = dict(interval=1, metric='bbox')
 load_from = None
 resume_from = None

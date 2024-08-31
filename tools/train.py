@@ -100,7 +100,7 @@ def main():
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
-    
+
     # torch.autograd.set_detect_anomaly(True)
 
     if args.cfg_options is not None: #cfg_options = None
@@ -211,8 +211,6 @@ def main():
     meta['seed'] = args.seed
     meta['exp_name'] = osp.basename(args.config)
 
-    print("before make model")
-    exit()
     model = build_detector(
         cfg.model,
         train_cfg=cfg.get('train_cfg'),

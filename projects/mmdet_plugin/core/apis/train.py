@@ -16,7 +16,6 @@ def custom_train_model(model,
                 distributed=False,
                 validate=False,
                 timestamp=None,
-                eval_model=None,
                 meta=None):
     """A function wrapper for launching model training according to cfg.
 
@@ -30,7 +29,6 @@ def custom_train_model(model,
         distributed=distributed,
         validate=validate,
         timestamp=timestamp,
-        eval_model=eval_model,
         meta=meta)
 
 

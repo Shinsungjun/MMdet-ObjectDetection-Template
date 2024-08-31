@@ -42,7 +42,6 @@ class CTDetection(TwoStageDetector):
             x = self.backbone(img)
             if self.with_neck:
                 x = self.neck(x)
-
             return x
 
         def forward_train(self,
@@ -53,11 +52,39 @@ class CTDetection(TwoStageDetector):
                           gt_bboxes_ignore=None,
                           gt_masks=None,
                           proposal=None,
-                          **kwargs):
-            pass
+                          **data):
+            x = self.extract_feat(img)
 
-        def simple_test(self):
-            pass
+            losses = dict()
+
+            if self.with_rpn: #center location
+                ct_loss, outs_rpn = self.rpn_head(x)
+                losses.update(ct_loss)
+
+            else: #all location
+                pass
+            pred_bboxes, det_loss = self.rpn_head(x, outs_rpn, gt_bboxes, gt_labels, gt_bboxes_ignore, gt_masks, **data)            
+            losses.update(det_loss)
+
+        def forward_test(self, img_metas, **data):
+            return self.simple_test(img_metas, **data)
+
+        def simple_test(self, img_metas, **data):
+            img = data['img']
+            x = self.extract_feat(img)
+            losses = dict()
+
+            if self.with_rpn: #center location
+                ct_loss, outs_rpn = self.rpn_head(x)
+                losses.update(ct_loss)
+
+            else: #all location
+                pass
+            
+            pred_bboxes, det_loss = self.rpn_head(x, outs_rpn, gt_bboxes, gt_labels, gt_bboxes_ignore, gt_masks, **data)            
+            losses.update(det_loss)
+
+            return pred_bboxes
 
         @auto_fp16(apply_to('img', ))
         def forward(self, return_loss=True, **data):

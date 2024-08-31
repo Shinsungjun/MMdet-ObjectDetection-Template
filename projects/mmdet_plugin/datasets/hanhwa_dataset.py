@@ -3,16 +3,26 @@
 # ---------------------------------------------
 #  Modified by SungJun Shin
 # ---------------------------------------------
-
+import contextlib
+import io
+import itertools
+import logging
+import os.path as osp
+import tempfile
+import warnings
 import numpy as np
 import torch
 import random
 import math
+import mmcv
 from mmcv.parallel import DataContainer as DC
 from mmdet.datasets import DATASETS
 from mmdet.datasets import CustomDataset
 from mmdet.datasets.api_wrappers import COCO, COCOeval
 from mmdet.core import eval_recalls
+from mmcv.utils import print_log
+from collections import OrderedDict
+from terminaltables import AsciiTable
 
 @DATASETS.register_module()
 class HanhwaIRDataset(CustomDataset):
@@ -158,6 +168,25 @@ class HanhwaIRDataset(CustomDataset):
             seg_map=seg_map)
 
         return ann
+    
+    def prepare_test_img(self, idx):
+        """Get testing data after pipeline.
+
+        Args:
+            idx (int): Index of data.
+
+        Returns:
+            dict: Testing data after pipeline with new keys introduced by \
+                pipeline.
+        """
+
+        img_info = self.data_infos[idx]
+        ann_info = self.get_ann_info(idx)
+        results = dict(img_info=img_info, ann_info=ann_info)
+        if self.proposals is not None:
+            results['proposals'] = self.proposals[idx]
+        self.pre_pipeline(results)
+        return self.pipeline(results)
     
     def xyxy2xywh(self, bbox):
         """Convert ``xyxy`` style bounding boxes to ``xywh`` style for COCO
