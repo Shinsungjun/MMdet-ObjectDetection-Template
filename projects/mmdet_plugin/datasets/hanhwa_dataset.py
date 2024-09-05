@@ -23,6 +23,8 @@ from mmdet.core import eval_recalls
 from mmcv.utils import print_log
 from collections import OrderedDict
 from terminaltables import AsciiTable
+import glob
+import os
 
 @DATASETS.register_module()
 class HanhwaIRDataset(CustomDataset):
@@ -44,26 +46,45 @@ class HanhwaIRDataset(CustomDataset):
             ann_file (_type_): _description_
         """
         
-        self.coco = COCO(ann_file)
-        self.cat_ids = self.coco.getCatIds() #get All Category Ids out : 0,1,2,...,7
-        self.cat2label = {cat_id: i for i, cat_id in enumerate(self.cat_ids)}
-        self.img_ids = self.coco.getImgIds() #IRData have string id [train_0, train_1, ...] (COCO -> int)
-        
-        data_infos = []
-        total_ann_ids = []
+        if self.test_mode:
+            self.cat_ids = [i for i in range(len(self.CLASSES))]
+            img_files = glob.glob(self.img_prefix + '*.png')
+            print(self.img_prefix)
+            print(self.cat_ids)
+            self.img_files = sorted(img_files, key=lambda x: int(os.path.basename(x).split('_')[-1].split('.')[0]))
+            data_infos = []
+            self.img_ids = []
+            for img_file in self.img_files:
+                data_info = dict()
+                data_info['file_name'] = os.path.basename(img_file)
+                data_info['filename'] = data_info['file_name']
+                data_info['height'] = 480
+                data_info['width'] = 640
+                data_info['id'] = os.path.splitext(data_info['filename'])[0]
+                data_infos.append(data_info)
+                self.img_ids.append(data_info['id'])
+            # self.img_ids = 
+        else:
+            self.coco = COCO(ann_file)
+            self.cat_ids = self.coco.getCatIds() #get All Category Ids out : 0,1,2,...,7
+            self.cat2label = {cat_id: i for i, cat_id in enumerate(self.cat_ids)}
+            self.img_ids = self.coco.getImgIds() #IRData have string id [train_0, train_1, ...] (COCO -> int)
+            
+            data_infos = []
+            total_ann_ids = []
 
-        for img_id in self.img_ids:
-            info = self.coco.imgs[img_id]
-            info['filename'] = info['file_name']
-            data_infos.append(info)
-            anns = self.coco.imgToAnns[img_id]
-            ann_ids = []
-            for ann in anns:
-                ann_ids.append(ann['id'])
-            total_ann_ids.extend(ann_ids)
-            assert len(set(total_ann_ids)) == len(
-            total_ann_ids), f"Annotation ids in '{ann_file}' are not unique!"
-        
+            for img_id in self.img_ids:
+                info = self.coco.imgs[img_id]
+                info['filename'] = info['file_name']
+                data_infos.append(info)
+                anns = self.coco.imgToAnns[img_id]
+                ann_ids = []
+                for ann in anns:
+                    ann_ids.append(ann['id'])
+                total_ann_ids.extend(ann_ids)
+                assert len(set(total_ann_ids)) == len(
+                total_ann_ids), f"Annotation ids in '{ann_file}' are not unique!"
+            
         return data_infos
 
     def get_ann_info(self, idx):
@@ -181,8 +202,7 @@ class HanhwaIRDataset(CustomDataset):
         """
 
         img_info = self.data_infos[idx]
-        ann_info = self.get_ann_info(idx)
-        results = dict(img_info=img_info, ann_info=ann_info)
+        results = dict(img_info=img_info)
         if self.proposals is not None:
             results['proposals'] = self.proposals[idx]
         self.pre_pipeline(results)

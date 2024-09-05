@@ -1,1 +1,1 @@
-from custom_yolox_head import CustomYOLOXHead
+# from .custom_yolox_head import CustomYOLOXHead

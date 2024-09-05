@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
 CONFIG=$1
+CHECKPOINT=$2
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-python $(dirname "$0")/train.py \
+python $(dirname "$0")/test.py \
     $CONFIG \
+    $CHECKPOINT \
     --seed 0 \
-    --launcher none ${@:2}
+    --launcher none \
+    ${@:3}

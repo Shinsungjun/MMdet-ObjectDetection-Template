@@ -54,7 +54,7 @@ model = dict(
         out_channels=128,
         num_csp_blocks=1),
     bbox_head=dict(
-        type='CustomYOLOXHead', num_classes=8, in_channels=128, feat_channels=128),
+        type='YOLOXHead', num_classes=8, in_channels=128, feat_channels=128),
     train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
     # In order to align the source code, the threshold of the val phase is
     # 0.01, and the threshold of the test phase is 0.001.
@@ -75,7 +75,20 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='OneChannelImgFormatBundle'),
-    dict(type='CollectIR', keys=['img', 'gt_bboxes', 'gt_labels']),
+    dict(type='CollectIR', keys=['img', 'gt_bboxes', 'gt_labels']), #1Channel IR -> 3Channel IR (just copy)
+]
+
+val_pipeline = [
+    dict(type='LoadImageFromFile', color_type='grayscale'), #1 Channel IR Image
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(640,480),
+        flip=False,
+        transforms=[
+    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='OneChannelImgFormatBundle'),
+    dict(type='CollectIR', keys=['img']), #1Channel IR -> 3Channel IR (just copy)
+    ])
 ]
 
 test_pipeline = [
@@ -85,9 +98,8 @@ test_pipeline = [
         img_scale=(640,480),
         flip=False,
         transforms=[
-    dict(type='LoadAnnotations', with_bbox=True),
     dict(type='OneChannelImgFormatBundle'),
-    dict(type='CollectIR', keys=['img']),
+    dict(type='CollectIR', keys=['img']), #1Channel IR -> 3Channel IR (just copy)
     ])
 ]
 
@@ -106,15 +118,16 @@ data = dict(
                  data_root=data_root,
                  ann_file='annotations/val.json',
                  img_prefix=data_root +'val/',
-                 pipeline=test_pipeline,
+                 pipeline=val_pipeline,
                  classes=class_names
                  ),
     test = dict(type='HanhwaIRDataset',
                  data_root=data_root,
-                 ann_file='annotations/val.json',
-                 img_prefix=data_root +'val/',
+                 ann_file='annotations/test.json',
+                 img_prefix=data_root +'test_open/',
                  pipeline=test_pipeline,
-                 classes=class_names
+                 classes=class_names,
+                 test_mode=True
                  ),)
 
 # train/inference config
@@ -142,5 +155,7 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 
 evaluation = dict(interval=1, metric='bbox')
+checkpoint_config = dict(interval=1, max_keep_ckpts=3)
+
 load_from = None
 resume_from = None
