@@ -260,9 +260,8 @@ def main():
         kwargs['jsonfile_prefix'] = osp.join('test', args.config.split(
             '/')[-1].split('.')[-2], time.ctime().replace(' ', '_').replace(':', '_'))
         if args.format_only:
-            result_files, tmp_dir = dataset.format_results(outputs, **kwargs)
-            print(tmp_dir)
-            print(result_files)
+            dataset.format_results(outputs, **kwargs)
+
         if args.eval:
             eval_kwargs = cfg.get('evaluation', {}).copy()
             # hard-code way to remove EvalHook args
