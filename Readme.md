@@ -18,6 +18,8 @@ but will be upgraded to v3.
 
 사실 그냥 쓰기 편리해서 만들었습니다.
 
+사용법은 코드를 보면 이해할 수도 있지만, 천천히 정리해서 올리겠습니다.
+
 ### Preparation
 
 Now, This Repository support only single GPU Training.
