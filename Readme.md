@@ -98,7 +98,7 @@ MMdet-ObjectDetection-Template
 ├── data  
 ├── debugging  
 ├── docs  
-├── mmdet (from mm-lab)  
+├── mmdetction (git clone from mm-lab)  
 ├── projects  
 │   ├── configs  
 │   └── mmdet_plugin  
