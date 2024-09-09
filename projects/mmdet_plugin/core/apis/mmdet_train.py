@@ -127,7 +127,7 @@ def custom_train_detector(model,
             cfg.data.val.pipeline = replace_ImageToTensor(
                 cfg.data.val.pipeline)
 
-        val_dataset = build_dataset(cfg.data.val, dict(test_mode=True))
+        val_dataset = build_dataset(cfg.data.val, dict(test_mode=False))
 
         val_dataloader = build_dataloader(val_dataset,
                          cfg.data.samples_per_gpu,

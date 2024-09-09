@@ -254,9 +254,9 @@ class HanhwaIRDataset(CustomDataset):
                 for i in range(bboxes.shape[0]):
                     data = dict()
                     data['image_id'] = img_id
+                    data['category_id'] = self.cat_ids[label]
                     data['bbox'] = self.xyxy2xywh(bboxes[i])
                     data['score'] = float(bboxes[i][4])
-                    data['category_id'] = self.cat_ids[label]
                     json_results.append(data)
         return json_results
 

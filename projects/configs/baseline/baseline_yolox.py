@@ -1,6 +1,7 @@
 # baseline config file
 _base_ = [
     '../../../mmdetection/configs/_base_/datasets/coco_detection.py',
+    '../../../mmdetection/configs/_base_/schedules/schedule_1x.py',
     '../../../mmdetection/configs/_base_/default_runtime.py'
 ]
 # (Above) Override on base config
@@ -23,71 +24,49 @@ log_config = dict(
     hooks=[
         dict(type="TextLoggerHook"),])
                         #  'config': cfg_dict
-
+custom_hooks = [
+    dict(
+        type='YOLOXModeSwitchHook',
+        num_last_epochs=num_last_epochs,
+        priority=48),
+    dict(
+        type='SyncNormHook',
+        num_last_epochs=num_last_epochs,
+        interval=interval,
+        priority=48),
+    dict(
+        type='ExpMomentumEMAHook',
+        resume_from=resume_from,
+        momentum=0.0001,
+        priority=49)
+]
 # model config
 img_scale = (480, 640)
 model = dict(
-    type='YOLOV3',
-    backbone=dict(
-        type='Darknet',
-        depth=53,
-        out_indices=(3, 4, 5),
-        init_cfg=dict(type='Pretrained', checkpoint='open-mmlab://darknet53')),
+    type='YOLOX',
+    input_size=img_scale,
+    random_size_range=(15, 25),
+    random_size_interval=10,
+    backbone=dict(type='CSPDarknet', deepen_factor=0.33, widen_factor=0.5),
     neck=dict(
-        type='YOLOV3Neck',
-        num_scales=3,
-        in_channels=[1024, 512, 256],
-        out_channels=[512, 256, 128]),
+        type='YOLOXPAFPN',
+        in_channels=[128, 256, 512],
+        out_channels=128,
+        num_csp_blocks=1),
     bbox_head=dict(
-        type='YOLOV3Head',
-        num_classes=8,
-        in_channels=[512, 256, 128],
-        out_channels=[1024, 512, 256],
-        anchor_generator=dict(
-            type='YOLOAnchorGenerator',
-            base_sizes=[[(116, 90), (156, 198), (373, 326)],
-                        [(30, 61), (62, 45), (59, 119)],
-                        [(10, 13), (16, 30), (33, 23)]],
-            strides=[32, 16, 8]),
-        bbox_coder=dict(type='YOLOBBoxCoder'),
-        featmap_strides=[32, 16, 8],
-        loss_cls=dict(
-            type='CrossEntropyLoss',
-            use_sigmoid=True,
-            loss_weight=1.0,
-            reduction='sum'),
-        loss_conf=dict(
-            type='CrossEntropyLoss',
-            use_sigmoid=True,
-            loss_weight=1.0,
-            reduction='sum'),
-        loss_xy=dict(
-            type='CrossEntropyLoss',
-            use_sigmoid=True,
-            loss_weight=2.0,
-            reduction='sum'),
-        loss_wh=dict(type='MSELoss', loss_weight=2.0, reduction='sum')),
-    # training and testing settings
-    train_cfg=dict(
-        assigner=dict(
-            type='GridAssigner',
-            pos_iou_thr=0.5,
-            neg_iou_thr=0.5,
-            min_pos_iou=0)),
-    test_cfg=dict(
-        nms_pre=1000,
-        min_bbox_size=0,
-        score_thr=0.05,
-        conf_thr=0.005,
-        nms=dict(type='nms', iou_threshold=0.45),
-        max_per_img=100))
+        type='YOLOXHead', num_classes=8, in_channels=128, feat_channels=128),
+    train_cfg=dict(assigner=dict(type='SimOTAAssigner', center_radius=2.5)),
+    # In order to align the source code, the threshold of the val phase is
+    # 0.01, and the threshold of the test phase is 0.001.
+    test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)))
+
 # dataset config
 dataset_type = 'HanhwaIRDataset'
 data_root = '/ws/HanhwaIRChallenge/MMdet-ObjectDetection/data/IRData/' #for ipynb
 # data_root = './data/IRData/'
 class_names = ['person', 'car', 'truck', 'bus', 'bicycle', 'bike', 'extra_vehicle', 'dog']
 num_gpus = 1
-batch_size = 8
+batch_size = 4
 # num_iters_per_epoch = 
 img_norm_cfg = None #For IR Image
 
@@ -155,16 +134,26 @@ data = dict(
 runner = dict(
     type = "EpochBasedRunner", max_epochs=max_epochs)
 
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005)
-optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
-# learning policy
 lr_config = dict(
-    policy='step',
-    warmup='linear',
-    warmup_iters=2000,  # same as burn-in in darknet
-    warmup_ratio=0.1,
-    step=[218, 246])
-auto_scale_lr = dict(base_batch_size=8)
+    _delete_=True,
+    policy='YOLOX',
+    warmup='exp',
+    by_epoch=False,
+    warmup_by_epoch=True,
+    warmup_ratio=1,
+    warmup_iters=5,  # 5 epoch
+    num_last_epochs=num_last_epochs,
+    min_lr_ratio=0.05)
+
+optimizer = dict(
+    type='SGD',
+    lr=0.01,
+    momentum=0.9,
+    weight_decay=5e-4,
+    nesterov=True,
+    paramwise_cfg=dict(norm_decay_mult=0., bias_decay_mult=0.))
+optimizer_config = dict(grad_clip=None)
+
 evaluation = dict(interval=1, metric='bbox')
 checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 

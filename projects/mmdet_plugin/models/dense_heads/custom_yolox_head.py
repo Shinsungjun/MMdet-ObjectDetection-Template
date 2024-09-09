@@ -24,8 +24,11 @@ from mmdet.models.dense_test_mixins import BBoxTestMixin
 
 @HEADS.register_module()
 class CustomYOLOXHead(BaseDenseHead, BBoxTestMixin):
-    """YOLOXHead head used in `YOLOX <https://arxiv.org/abs/2107.08430>`_.
+    """
         !!Only Fix rescale bbox!!
+    /SJSHIN 
+    
+    YOLOXHead head used in `YOLOX <https://arxiv.org/abs/2107.08430>`_.
     Args:
         num_classes (int): Number of categories excluding the background
             category.
